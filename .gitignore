@@ -9,4 +9,5 @@ node_modules
 bower_components
 
 # Artifacts
+example/juicy.mp3
 dist/
