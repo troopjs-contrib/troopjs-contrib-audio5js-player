@@ -1,0 +1,31 @@
+{
+  "name": "troopjs-contrib-audio5js-player",
+  "moduleType": [
+    "amd"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "example"
+  ],
+  "dependencies": {
+    "requirejs": ">=2.1.14",
+    "troopjs": "3.0.0-pr.2+fa7fcdb",
+    "poly": "~0.6",
+    "when": "~3.4",
+    "jquery": ">=1.8",
+    "requirejs-text": "~2.0.12",
+    "moment": "~2.8",
+    "troopjs-contrib-audio5js": "~1"
+  },
+  "resolutions": {
+    "when": "~3.4",
+    "requirejs": ">=2.1.14",
+    "requirejs-text": "~2.0.12"
+  },
+  "devDependencies": {
+    "bootstrap": "~3.2",
+    "require-css": "~0.1"
+  }
+}
