@@ -84,13 +84,13 @@ define([
 					cued = true;
 					return me
 						.emit("audio5js/do/pause")
-						.then(function () {
-							return me.emit("audio5js/do/seek", cue_in)
-						})
-						.then(function () {
-							return me.emit("audio5js/do/play")
+						.tap(function () {
+							return me.emit("audio5js/do/seek", cue_in);
 						})
 						.tap(function () {
+							return me.emit("audio5js/do/play");
+						})
+						.ensure(function () {
 							cued = false;
 						});
 				}
@@ -98,13 +98,13 @@ define([
 					cued = true;
 					return me
 						.emit("audio5js/do/pause")
-						.then(function () {
-							return me.emit("audio5js/do/seek", cue_out)
-						})
-						.then(function () {
-							return me.emit("audio5js/ended");
+						.tap(function () {
+							return me.emit("audio5js/do/seek", cue_out);
 						})
 						.tap(function () {
+							return me.emit("audio5js/ended");
+						})
+						.ensure(function () {
 							cued = false;
 						});
 				}
@@ -115,7 +115,7 @@ define([
 			var me = this;
 
 			if (me.hasOwnProperty(SRC)) {
-				return load.call(me, me[SRC]);
+				load.call(me, me[SRC]);
 			}
 		},
 
@@ -150,7 +150,7 @@ define([
 		},
 
 		"dom:[data-action='play']/click": function () {
-			return this.emit("audio5js/do/play");
+			this[$ELEMENT].trigger("audio5js/do/play");
 		}
 	});
 });
