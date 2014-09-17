@@ -1,14 +1,13 @@
 define([
 	"troopjs-contrib-audio5js/widget",
 	"jquery",
-	"moment",
-	"when/poll",
+	"./$duration",
+	"./$position",
+	"./$ready",
+	"./$playing",
 	"poly/array"
-], function (Widget, $, moment, poll) {
+], function (Widget, $, $duration, $position, $ready, $playing) {
 	var ARRAY_SLICE = Array.prototype.slice;
-	var CANPLAY = "canplay";
-	var PHASE = "phase";
-	var RE_PHASE = /^finalized?/;
 	var $ELEMENT = "$element";
 	var SRC = "src";
 	var DURATION = "duration";
@@ -17,9 +16,10 @@ define([
 	var EVENTS = [
 		"audio5js/canplay",
 		"audio5js/error",
-		"audio5js/ended",
 		"audio5js/play",
-		"audio5js/pause"
+		"audio5js/pause",
+		"audio5js/seeked",
+		"audio5js/ended"
 	];
 	var METHODS = [
 		"audio5js/do/play",
@@ -27,20 +27,17 @@ define([
 		"audio5js/do/seek"
 	];
 
-	function toggleReady(toggle) {
-		return this
-			.find(".glyphicon")
-				.toggleClass("glyphicon-time", toggle)
-				.toggleClass("glyphicon-play", !toggle);
-	}
+	function load(src) {
+		var me = this;
+		var $element = me[$ELEMENT];
 
-	function togglePlaying(toggle) {
-		return this
-			.toggleClass("paused", !toggle)
-			.toggleClass("playing", toggle)
-			.find("[data-action='play']")
-				.toggleClass("btn-default", !toggle)
-				.toggleClass("btn-primary", toggle);
+		$ready.call($element, false);
+
+		return me
+			.emit("audio5js/do/load", src)
+			.ensure(function () {
+				$ready.call($element, true);
+			});
 	}
 
 	return Widget.extend(function ($element, name, src) {
@@ -48,8 +45,7 @@ define([
 	}, {
 		"sig/initialize": function () {
 			var me = this;
-			var _position = 0;
-			var _cued = false;
+			var cued = false;
 
 			EVENTS.forEach(function (event) {
 				me.on(event, function () {
@@ -70,68 +66,56 @@ define([
 				var $element = me[$ELEMENT];
 				var $data = $element.data();
 				var cue_in = CUE_IN in $data
-					? $data[CUE_IN]
+					? parseFloat($data[CUE_IN])
 					: 0;
 				var cue_out = CUE_OUT in $data
-					? $data[CUE_OUT]
+					? parseFloat($data[CUE_OUT])
 					: duration;
 
-				if (_cued === true) {
+				var position_cue = Math.max(cue_in, Math.min(position, cue_out)) - cue_in;
+				var duration_cue = Math.max(cue_in, Math.min(duration, cue_out)) - cue_in;
+
+				$position.call($element, position_cue, duration_cue);
+
+				if (cued === true) {
 					return;
 				}
 				else if (position !== 0 && position < cue_in) {
-					_cued = true;
-
+					cued = true;
 					return me
-						.emit("audio5js/do/seek", cue_in)
+						.emit("audio5js/do/pause")
+						.then(function () {
+							return me.emit("audio5js/do/seek", cue_in)
+						})
+						.then(function () {
+							return me.emit("audio5js/do/play")
+						})
 						.tap(function () {
-							_cued = false;
+							cued = false;
 						});
 				}
 				else if (position !== duration && position > cue_out) {
-					_cued = true;
-
+					cued = true;
 					return me
 						.emit("audio5js/do/pause")
+						.then(function () {
+							return me.emit("audio5js/do/seek", cue_out)
+						})
 						.then(function () {
 							return me.emit("audio5js/ended");
 						})
 						.tap(function () {
-							_cued = false;
+							cued = false;
 						});
 				}
 			});
-
-			poll(
-				function () {
-					var position = _position;
-
-					if (!me[CANPLAY]) {
-						toggleReady.call(me[$ELEMENT], true);
-					}
-					else if (me.prop && me.prop("playing")) {
-						toggleReady.call(me[$ELEMENT], (_position = me.prop("position")) === position);
-					}
-					else {
-						toggleReady.call(me[$ELEMENT], false);
-					}
-
-					return me[PHASE];
-				},
-				300,
-				function (phase) {
-					return RE_PHASE.test(phase);
-				}
-			);
 		},
 
 		"sig/start": function () {
 			var me = this;
 
-			me[CANPLAY] = false;
-
 			if (me.hasOwnProperty(SRC)) {
-				return me.emit("audio5js/do/load", me[SRC]);
+				return load.call(me, me[SRC]);
 			}
 		},
 
@@ -144,61 +128,29 @@ define([
 			var $element = me[$ELEMENT];
 			var $data = $element.data();
 			var cue_in = CUE_IN in $data
-				? $data[CUE_IN]
+				? parseFloat($data[CUE_IN])
 				: 0;
 			var cue_out = CUE_OUT in $data
-				? $data[CUE_OUT]
+				? parseFloat($data[CUE_OUT])
 				: me.prop(DURATION);
 
-			me[CANPLAY] = true;
-
-			$element
-				.find(".duration")
-				.text(moment((cue_out - cue_in) * 1000).format("mm:ss"));
-		},
-
-		"on/audio5js/timeupdate": function (position, duration) {
-			var me = this;
-			var $element = me[$ELEMENT];
-			var $data = $element.data();
-			var cue_in = CUE_IN in $data
-				? $data[CUE_IN]
-				: 0;
-			var cue_out = CUE_OUT in $data
-				? $data[CUE_OUT]
-				: duration;
-
-			var position_cue = Math.max(cue_in, Math.min(position, cue_out)) - cue_in;
-			var duration_cue = Math.max(cue_in, Math.min(duration, cue_out)) - cue_in;
-			var progress_cue = (position_cue / duration_cue) * 100;
-
-			$element
-				.find(".position")
-					.text(moment(position_cue * 1000).format("mm:ss"))
-					.end()
-				.find(".progress > .progress-bar")
-					.width(progress_cue + "%")
-					.attr("aria-valuenow", progress_cue)
-					.find("span")
-						.text(progress_cue + "%");
+			$duration.call($element, cue_out - cue_in);
 		},
 
 		"on/audio5js/play": function () {
-			togglePlaying.call(this[$ELEMENT], true);
+			$playing.call(this[$ELEMENT], true);
 		},
 
 		"on/audio5js/pause": function () {
-			togglePlaying.call(this[$ELEMENT], false);
+			$playing.call(this[$ELEMENT], false);
+		},
+
+		"dom/audio5js/do/load": function ($event, src) {
+			load.call(this, src);
 		},
 
 		"dom:[data-action='play']/click": function () {
-			var me = this;
-			var $element = me[$ELEMENT];
-
-			if (me[CANPLAY]) {
-				$element.triggerHandler("audio5js/do/seek", 0);
-				$element.triggerHandler("audio5js/do/play");
-			}
+			return this.emit("audio5js/do/play");
 		}
 	});
 });
