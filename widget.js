@@ -108,6 +108,10 @@ define([
 							cued = false;
 						});
 				}
+				else if (position == duration)
+				{
+					return me.emit("audio5js/do/pause");
+				}
 			});
 		},
 
