@@ -1,9 +1,9 @@
 require({
+	"waitSeconds": 15,
 	"packages": [
 		{
 			"name": "bootstrap",
-			"location": "bower_components/bootstrap/dist",
-			"main": "css/bootstrap.min"
+			"location": "bower_components/bootstrap/dist"
 		},
 		{
 			"name": "jquery",
@@ -74,7 +74,7 @@ require({
 		"require",
 		"jquery",
 		"troopjs",
-		"css!bootstrap",
+		"css!bootstrap/css/bootstrap",
 		"bootstrap/js/bootstrap"
 	],
 
