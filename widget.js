@@ -40,6 +40,11 @@ define([
 			});
 	}
 
+	function isIE () {
+  		var myNav = navigator.userAgent.toLowerCase();
+  		return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
+	}
+
 	return Widget.extend(function ($element, name, src) {
 		this[SRC] = src;
 	}, {
@@ -63,6 +68,7 @@ define([
 
 			me.on("audio5js/timeupdate", function (position, duration) {
 				var me = this;
+				var is_ie_end;
 				var $element = me[$ELEMENT];
 				var $data = $element.data();
 				var cue_in = CUE_IN in $data
@@ -76,6 +82,11 @@ define([
 				var duration_cue = Math.max(cue_in, Math.min(duration, cue_out)) - cue_in;
 
 				$position.call($element, position_cue, duration_cue);
+
+				// rounding only for ie8
+				if (isIE() <= 9) {
+					is_ie_end = Math.round(position) == Math.round(duration);
+				}
 
 				if (cued === true) {
 					return;
@@ -108,9 +119,19 @@ define([
 							cued = false;
 						});
 				}
-				else if (position == duration)
-				{
-					return me.emit("audio5js/do/pause");
+				else if (position == duration || is_ie_end) {
+					cued = true;
+					return me
+						.emit("audio5js/do/pause")
+						.tap(function () {
+							return me.emit("audio5js/do/seek", cue_in);
+						})
+						.tap(function () {
+							return me.emit("audio5js/ended");
+						})
+						.ensure(function () {
+							cued = false;
+						});
 				}
 			});
 		},
