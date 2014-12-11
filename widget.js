@@ -83,11 +83,6 @@ define([
 
 				$position.call($element, position_cue, duration_cue);
 
-				// rounding only for ie8
-				if (isIE() <= 9) {
-					is_ie_end = Math.round(position) == Math.round(duration);
-				}
-
 				if (cued === true) {
 					return;
 				}
@@ -119,7 +114,7 @@ define([
 							cued = false;
 						});
 				}
-				else if (position == duration || is_ie_end) {
+				else if (duration - position <= 0.2) {
 					cued = true;
 					return me
 						.emit("audio5js/do/pause")
