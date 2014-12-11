@@ -63,7 +63,6 @@ define([
 
 			me.on("audio5js/timeupdate", function (position, duration) {
 				var me = this;
-				var is_ie_end;
 				var $element = me[$ELEMENT];
 				var $data = $element.data();
 				var cue_in = CUE_IN in $data
