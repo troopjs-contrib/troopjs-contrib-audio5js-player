@@ -108,9 +108,19 @@ define([
 							cued = false;
 						});
 				}
-				else if (position == duration)
-				{
-					return me.emit("audio5js/do/pause");
+				else if (duration - position <= 0.2) {
+					cued = true;
+					return me
+						.emit("audio5js/do/pause")
+						.tap(function () {
+							return me.emit("audio5js/do/seek", cue_in);
+						})
+						.tap(function () {
+							return me.emit("audio5js/ended");
+						})
+						.ensure(function () {
+							cued = false;
+						});
 				}
 			});
 		},
