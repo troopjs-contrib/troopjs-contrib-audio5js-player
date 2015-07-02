@@ -1,12 +1,14 @@
 define([
 	"troopjs-contrib-audio5js/widget",
 	"jquery",
+	"when",
 	"./$duration",
 	"./$position",
 	"./$ready",
 	"./$playing",
+	"./$lagging",
 	"poly/array"
-], function (Widget, $, $duration, $position, $ready, $playing) {
+], function (Widget, $, when, $duration, $position, $ready, $playing, $lagging) {
 	var ARRAY_SLICE = Array.prototype.slice;
 	var $ELEMENT = "$element";
 	var SRC = "src";
@@ -17,6 +19,7 @@ define([
 		"audio5js/canplay",
 		"audio5js/error",
 		"audio5js/play",
+		"audio5js/lagging",
 		"audio5js/pause",
 		"audio5js/seeked",
 		"audio5js/ended"
@@ -61,8 +64,39 @@ define([
 				});
 			});
 
+			// one simplest way to tell if the audio playing is
+			// lagging caused by out of buffered bytes.
+			var lagging;
+
+			function cancelLaggingCheck() {
+				// dismiss the lagging timeout
+				if (lagging) {
+					// if an actual lagging has really occurred.
+					if (lagging.promise.inspect().state === 'rejected') {
+						me.emit("audio5js/lagging", false);
+					} else {
+						lagging.resolve();
+					}
+				}
+			}
+
 			me.on("audio5js/timeupdate", function (position, duration) {
-				var me = this;
+
+				cancelLaggingCheck();
+
+				// schedule a lagging check
+				if (me.player.playing) {
+					lagging = when.defer();
+					// the timeupdate even is fired up to 250ms interval
+					// http://dev.w3.org/html5/spec-preview/media-elements.html
+					lagging.promise = lagging.promise.timeout(500, 'lagging');
+					lagging.promise.then(
+					function handleSmooth() {},
+					function handleLagged() {
+						me.emit("audio5js/lagging", true);
+					});
+				}
+
 				var $element = me[$ELEMENT];
 				var $data = $element.data();
 				var cue_in = CUE_IN in $data
@@ -123,6 +157,8 @@ define([
 						});
 				}
 			});
+
+			me.on('audio5js/pause', cancelLaggingCheck);
 		},
 
 		"sig/start": function () {
@@ -157,6 +193,10 @@ define([
 
 		"on/audio5js/pause": function () {
 			$playing.call(this[$ELEMENT], false);
+		},
+
+		"on/audio5js/lagging": function (isLagging) {
+			$lagging.call(this[$ELEMENT], isLagging);
 		},
 
 		"dom/audio5js/do/load": function ($event, src) {
