@@ -5,15 +5,42 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta http-equiv="imagetoolbar" content="no"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" />
+  <style type="text/css">
+    .player .btn:before {
+      content: "\e072";
+    }
+    .player .btn:focus {
+      visibility: hidden;
+      outline: none;
+    }
+
+    /* loading state */
+    .player.loading .btn {
+      background-color: #fff;
+      border-color: #ccc;
+      pointer-events: none;
+      cursor: not-allowed;
+      filter: alpha(opacity=65);
+      opacity: .65;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+    }
+
+    /* lagging state */
+    .player.lagging .btn:before {
+      content: "\e178";
+    }
+  </style>
 </head>
 
 <body class="container-fluid" style="padding-top: 1em">
-
 <div class="panel panel-default">
-  <div class="panel-body" data-weave="widget(src)" data-cue-in="8" data-cue-out="16" data-src="juicy.mp3">
-    <button type="button" class="btn btn-default" data-action="play">
-      <span class="glyphicon glyphicon-play"></span>
-    </button>
+  <div class="panel-body player" data-weave="widget(src)" data-cue-in="8" data-cue-out="16" data-src="http://www.stephaniequinn.com/Music/Vivaldi%20-Largo%20from%20Four%20Seasons.mp3">
+    <div>
+      <button type="button" class="glyphicon btn btn-default" data-action="play"></button>
+    </div>
+    <br/>
     <div class="progress">
       <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
         <span class="sr-only">0%</span>

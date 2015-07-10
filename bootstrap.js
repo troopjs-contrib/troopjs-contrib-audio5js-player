@@ -74,7 +74,6 @@ require({
 		"require",
 		"jquery",
 		"troopjs",
-		"css!bootstrap/css/bootstrap",
 		"bootstrap/js/bootstrap"
 	],
 
@@ -88,13 +87,6 @@ require({
 			});
 		});
 
-		jQuery(function ($) {
-			// Chrome allows you to click `forbidden` elements inside buttons
-			$(document.body).on("click", "button > span", function ($event) {
-				return $($event.target)
-					.parent()
-					.click();
-			});
-		});
+		jQuery(function ($) {});
 	}
 });
