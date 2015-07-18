@@ -7,8 +7,9 @@ define([
 	"./$ready",
 	"./$playing",
 	"./$lagging",
+	"./$seeking",
 	"poly/array"
-], function (Widget, $, when, $duration, $position, $ready, $playing, $lagging) {
+], function (Widget, $, when, $duration, $position, $ready, $playing, $lagging, $seeking) {
 	var ARRAY_SLICE = Array.prototype.slice;
 	var $ELEMENT = "$element";
 	var SRC = "src";
@@ -21,6 +22,7 @@ define([
 		"audio5js/play",
 		"audio5js/lagging",
 		"audio5js/pause",
+		"audio5js/seeking",
 		"audio5js/seeked",
 		"audio5js/ended"
 	];
@@ -197,6 +199,14 @@ define([
 
 		"on/audio5js/lagging": function (isLagging) {
 			$lagging.call(this[$ELEMENT], isLagging);
+		},
+
+		"on/audio5js/seeking": function () {
+			$seeking.call(this[$ELEMENT], true);
+		},
+
+		"on/audio5js/seeked": function () {
+			$seeking.call(this[$ELEMENT], false);
 		},
 
 		"dom/audio5js/do/load": function ($event, src) {
