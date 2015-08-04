@@ -94,7 +94,7 @@ define([
 					lagging = when.defer();
 					// the timeupdate even is fired up to 250ms interval
 					// http://dev.w3.org/html5/spec-preview/media-elements.html
-					lagging.promise = lagging.promise.timeout(500, 'lagging');
+					lagging.promise = lagging.promise.timeout(1000, 'lagging');
 					lagging.promise.then(
 					function handleSmooth() {},
 					function handleLagged() {
