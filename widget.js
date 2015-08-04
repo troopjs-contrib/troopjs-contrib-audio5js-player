@@ -18,6 +18,9 @@ define([
 	var CUE_OUT = "cueOut";
 	var EVENTS = [
 		"audio5js/canplay",
+		"audio5js/loadstart",
+		"audio5js/progress",
+		"audio5js/ready",
 		"audio5js/error",
 		"audio5js/play",
 		"audio5js/lagging",
